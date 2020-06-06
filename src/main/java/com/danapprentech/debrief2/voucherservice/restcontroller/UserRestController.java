@@ -3,6 +3,7 @@ package com.danapprentech.debrief2.voucherservice.restcontroller;
 import com.danapprentech.debrief2.voucherservice.model.Merchant;
 import com.danapprentech.debrief2.voucherservice.model.MerchantCategory;
 import com.danapprentech.debrief2.voucherservice.model.Voucher;
+import com.danapprentech.debrief2.voucherservice.model.response.MessageResponse;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantCategoryRepository;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,6 +79,7 @@ public class UserRestController
             @RequestParam Optional<String> merchantName,
             @RequestParam(defaultValue = "merchantName") String sortBy)
     {
+
         Page<Merchant> merchants = merchantRepository.findByMerchantNameContainingIgnoreCase(merchantName.orElse(""),
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
 
@@ -98,6 +101,12 @@ public class UserRestController
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<String> sortBy)
     {
+        if (voucherRepository.findAll() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Voucher not found","400"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         Page<Voucher> merchants = voucherRepository.findAll(
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.DESC, sortBy.orElse("voucherName")));
 

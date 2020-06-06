@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class ToInActiveRequest
 {
     private Boolean status;
+    private Integer quota;
 }

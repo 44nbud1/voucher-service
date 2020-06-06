@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,51 @@ public class AdminRestController {
                                           @PathVariable String idUser,
                              @RequestBody VoucherRequest voucherRequest)
     {
+        if (voucherOutletService.findById(idMerchant) == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Id Merchant Not Found","404"), HttpStatus.NOT_FOUND);
+        }
+
+        if (voucherRepository.findByVoucherName(voucherRequest.getVoucherName()) != null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Voucher name is exist","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getDiscount() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form discount","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getExpiredDate() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form expired date","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getMaxDiscount() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form max discount","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getQuota() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form quota","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getStatus() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form status","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getVoucherName() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form voucher name","400"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getVoucherPrice() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form voucher price","400"), HttpStatus.BAD_REQUEST);
+        }
+
         return voucherOutletService.findById(idMerchant)
             .map(merchant -> {
                 Voucher vouchers = new Voucher();
@@ -83,6 +129,13 @@ public class AdminRestController {
             @RequestParam Optional<Integer> page,
             @RequestParam(defaultValue = "voucherName") String sortBy)
     {
+
+        if (voucherRepository.findAll() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("voucher not found","400"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         Page<Voucher> vouchers = voucherRepository.findAll(
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
 
@@ -107,8 +160,11 @@ public class AdminRestController {
         if (filterByStatus.equalsIgnoreCase("true"))
         {
             status = Boolean.TRUE;
-        } else {
+        } else if (filterByStatus.equalsIgnoreCase("false")){
             status = Boolean.FALSE;
+        } else {
+            return new ResponseEntity<>(new MessageResponse("Status invalid","400"),
+                    HttpStatus.BAD_REQUEST);
         }
 
         Page<Voucher> vouchers = voucherRepository.findByStatus(status,
@@ -152,6 +208,12 @@ public class AdminRestController {
             @PathVariable Long idVoucher)
 
     {
+        if (voucherRepository.findByIdVoucher(idVoucher) == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Voucher not found","400"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
         VoucherResponse voucherResponse = new VoucherResponse();
         voucherResponse.setStatus(vouchers.getStatus());
@@ -261,31 +323,84 @@ public class AdminRestController {
 
     }
 
-    @PutMapping("/admin/update-voucher/{idVoucher}")
+    @PutMapping("/admin/update-status-voucher/{idVoucher}/restock")
     public ResponseEntity<?> updateVoucher(
             @PathVariable Long idVoucher,
             @RequestBody ToInActiveRequest toInActiveRequest)
     {
-
-        Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
-        if (vouchers.getStatus() == false)
+        if (toInActiveRequest.getStatus() == null)
         {
-            return ResponseEntity.badRequest().body(new MessageResponse("Status Allready InActive","400"));
+            return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","400"));
         }
 
-        if (toInActiveRequest.getStatus() == true)
+        // onlt change status
+        if (toInActiveRequest.getStatus() == true && toInActiveRequest.getQuota() == null)
         {
-            return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
+
+            Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
+
+            if (vouchers == null)
+            {
+                return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","400"));
+            }
+
+            if (toInActiveRequest.getStatus() == false)
+            {
+                return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
+            }
+
+            if (vouchers.getQuota() < 5)
+            {
+                vouchers.setQuota(5);
+            }
+
+            vouchers.setStatus(Boolean.TRUE);
+            vouchers.setQuota(vouchers.getQuota());
+            vouchers.setUpdateAt(new Date());
+            voucherRepository.save(vouchers);
+
+            return ResponseEntity.ok(new MessageResponse("Successfully Changed Status","200"));
         }
 
-        vouchers.setStatus(toInActiveRequest.getStatus());
-        vouchers.setUpdateAt(new Date());
-        voucherRepository.save(vouchers);
+        // only change stock
+        if (toInActiveRequest.getStatus() == true && toInActiveRequest.getQuota() != null)
+        {
 
-        return ResponseEntity.ok(new MessageResponse("Successfully Changed Status","200"));
+            Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
+
+            if (vouchers == null)
+            {
+                return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","400"));
+            }
+
+            if (toInActiveRequest.getStatus() == false)
+            {
+                return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
+            }
+
+
+            vouchers.setStatus(Boolean.TRUE);
+            vouchers.setQuota(vouchers.getQuota()+toInActiveRequest.getQuota());
+            vouchers.setUpdateAt(new Date());
+            voucherRepository.save(vouchers);
+
+            return ResponseEntity.ok(new MessageResponse("Successfully Changed Status","200"));
+        }
+
+        // only change status
+        if (toInActiveRequest.getStatus() == false) {
+            Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
+
+            vouchers.setStatus(Boolean.FALSE);
+            vouchers.setUpdateAt(new Date());
+            voucherRepository.save(vouchers);
+
+            return ResponseEntity.ok(new MessageResponse("Successfully Changed Status", "200"));
+        }
+        else {
+            return ResponseEntity.badRequest().body(new MessageResponse("Wrong status", "400"));
+        }
 
     }
-
-
 
 }
