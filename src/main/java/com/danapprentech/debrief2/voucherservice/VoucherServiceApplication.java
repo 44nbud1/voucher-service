@@ -78,7 +78,6 @@ public class VoucherServiceApplication {
 			voucher.setCreateAt(new Date());
 			voucher.setUpdateAt(new Date());
 			voucher.setDiscount(10D);
-			voucher.setIdVoucher(1L);
 			voucher.setMerchant(merchant2);
 			voucher.setVoucherName("Bayar Indiehome");
 			voucher.setVoucherPrice(10000D);
@@ -94,7 +93,6 @@ public class VoucherServiceApplication {
 			voucher2.setCreateAt(new Date());
 			voucher2.setUpdateAt(new Date());
 			voucher2.setDiscount(10D);
-			voucher2.setIdVoucher(2L);
 			voucher2.setMerchant(merchant2);
 			voucher2.setVoucherName("Crazy Deals");
 			voucher2.setVoucherPrice(10000D);
