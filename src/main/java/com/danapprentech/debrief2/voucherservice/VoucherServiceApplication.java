@@ -93,7 +93,7 @@ public class VoucherServiceApplication {
 			voucher2.setCreateAt(new Date());
 			voucher2.setUpdateAt(new Date());
 			voucher2.setDiscount(10D);
-			voucher2.setMerchant(merchant2);
+			voucher2.setMerchant(merchant1);
 			voucher2.setVoucherName("Crazy Deals");
 			voucher2.setVoucherPrice(10000D);
 			voucherRepository.save(voucher2);
