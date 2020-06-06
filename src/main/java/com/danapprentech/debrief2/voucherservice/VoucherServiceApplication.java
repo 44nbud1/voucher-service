@@ -70,7 +70,7 @@ public class VoucherServiceApplication {
 
 			Voucher voucher = new Voucher();
 			voucher.setStatus(Boolean.TRUE);
-			voucher.setQuota(100);
+			voucher.setQuota(1000);
 			voucher.setExpiredDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 					.parse("2021-06-15 15:30:14.332"));
 			voucher.setMaxDiscount(5000D);
@@ -78,7 +78,7 @@ public class VoucherServiceApplication {
 			voucher.setCreateAt(new Date());
 			voucher.setUpdateAt(new Date());
 			voucher.setDiscount(10D);
-			voucher.setIdVoucher(3001L);
+			voucher.setIdVoucher(1L);
 			voucher.setMerchant(merchant2);
 			voucher.setVoucherName("Bayar Indiehome");
 			voucher.setVoucherPrice(10000D);
@@ -86,7 +86,7 @@ public class VoucherServiceApplication {
 
 			Voucher voucher2 = new Voucher();
 			voucher2.setStatus(Boolean.TRUE);
-			voucher2.setQuota(100);
+			voucher2.setQuota(1000);
 			voucher2.setExpiredDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 					.parse("2021-06-15 15:30:14.332"));
 			voucher2.setMaxDiscount(5000D);
@@ -94,7 +94,7 @@ public class VoucherServiceApplication {
 			voucher2.setCreateAt(new Date());
 			voucher2.setUpdateAt(new Date());
 			voucher2.setDiscount(10D);
-			voucher2.setIdVoucher(3002L);
+			voucher2.setIdVoucher(2L);
 			voucher2.setMerchant(merchant2);
 			voucher2.setVoucherName("Crazy Deals");
 			voucher2.setVoucherPrice(10000D);
