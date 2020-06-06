@@ -35,7 +35,7 @@ public class VoucherServiceApplication {
 
 //			Merchant merchantList1 = repository.findByIdMerchant(1001L);
 			MerchantCategory merchantCategory1 = new MerchantCategory();
-			merchantCategory1.setMerchantCategory("F&B");
+			merchantCategory1.setMerchantCategory("fnb");
 			merchantCategory1.setIdMerchantCategory(2001L);
 			merchantCategory1.setCreatedAt(new Date());
 			merchantCategory1.setUpdatedAt(new Date());
