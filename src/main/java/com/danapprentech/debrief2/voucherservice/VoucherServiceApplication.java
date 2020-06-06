@@ -96,7 +96,7 @@ public class VoucherServiceApplication {
 			voucher2.setMerchant(merchant2);
 			voucher2.setVoucherName("Crazy Deals");
 			voucher2.setVoucherPrice(10000D);
-			voucherRepository.save(voucher);
+			voucherRepository.save(voucher2);
 
 		};
 
