@@ -139,8 +139,8 @@ public class UserRestController
 
         Map merchantResp = new HashMap<>();
         merchantResp.put("data",merchantsResponse);
-        merchantResp.put("message","Successfully");
-        merchantResp.put("status","200");
+        merchantResp.put("message","Vouchers are successfully collected");
+        merchantResp.put("status","040");
 
         return ResponseEntity.ok(merchantResp);
 
