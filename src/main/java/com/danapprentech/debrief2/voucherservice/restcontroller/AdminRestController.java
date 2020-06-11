@@ -10,9 +10,7 @@ import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
 import com.danapprentech.debrief2.voucherservice.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -272,17 +270,35 @@ public class AdminRestController {
             @RequestParam Optional<String> merchantName,
             @RequestParam(defaultValue = "merchantName") String sortBy)
     {
-        Page<Merchant> merchants = merchantRepository.findByMerchantNameContainingIgnoreCase(merchantName.orElse(""),
-                PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
+        Merchant merchants = merchantRepository.findByMerchantNameContainingIgnoreCase(merchantName.orElse(""));
+
+        if (merchants == null)
+        {
+            System.out.println("null");
+        }
+
+        List<Voucher> vouc = merchants.getVouchers();
+        Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy);
+
+        Long start = pageable.getOffset();
+        Long end = (start + pageable.getPageSize()) > vouc.size() ? vouc.size() : (start + pageable.getPageSize());
+
+        int a = start.intValue();
+        System.out.println(a);
+        int b = end.intValue();
+        System.out.println(b);
+
+        Page<Voucher> pages = new PageImpl<Voucher>(vouc.subList(a, b), pageable, vouc.size());
 
         List<Page<Merchant>> merchantsResponse = new ArrayList<>();
-        merchantsResponse.add(merchants);
+        List<Voucher> voucherssss = merchants.getVouchers();
 
         Map merchantResp = new HashMap<>();
-        merchantResp.put("data",merchantsResponse);
+        merchantResp.put("data",pages);
+        merchantResp.put("idMerchant",merchants.getIdMerchant() );
+        merchantResp.put("merchantName",merchants.getMerchantName() );
         merchantResp.put("message","Vouchers are successfully collected");
         merchantResp.put("status","040");
-
         return ResponseEntity.ok(merchantResp);
     }
 

@@ -11,4 +11,5 @@ public interface MerchantCategoryRepository extends JpaRepository<MerchantCatego
 {
     MerchantCategory findByIdMerchantCategory(Long id);
     Page<MerchantCategory> findByMerchantCategoryContaining(String merchant, Pageable pageable);
+    MerchantCategory findByMerchantCategoryContaining(String merchant);
 }

@@ -10,5 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface MerchantRepository extends JpaRepository<Merchant, Long>
 {
     Merchant findByIdMerchant(Long id);
+    Merchant findByMerchantNameContainingIgnoreCase(String name);
     Page<Merchant> findByMerchantNameContainingIgnoreCase(String name, Pageable pageable);
+    Merchant findByMerchantNameContaining(String name);
 }

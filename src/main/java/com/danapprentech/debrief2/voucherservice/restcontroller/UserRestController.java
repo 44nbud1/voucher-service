@@ -4,13 +4,13 @@ import com.danapprentech.debrief2.voucherservice.model.Merchant;
 import com.danapprentech.debrief2.voucherservice.model.MerchantCategory;
 import com.danapprentech.debrief2.voucherservice.model.Voucher;
 import com.danapprentech.debrief2.voucherservice.model.response.MessageResponse;
+import com.danapprentech.debrief2.voucherservice.model.response.VoucherOutletResponse;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantCategoryRepository;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,23 +64,103 @@ public class UserRestController
             @RequestParam Optional<String> merchantCategory,
             @RequestParam(defaultValue = "merchantCategory") String sortBy)
     {
-        Page<MerchantCategory> vouchers = merchantCategoryRepository.findByMerchantCategoryContaining(merchantCategory.orElse("_"),
-                PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
+//        Page<MerchantCategory> vouchers = merchantCategoryRepository.findByMerchantCategoryContaining(merchantCategory.orElse("_"),
+//                PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
 
-        if (true)
+        MerchantCategory merchantsCat = merchantCategoryRepository.findByMerchantCategoryContaining(
+                merchantCategory.orElse("_"));
+
+        if (merchantsCat == null)
         {
             return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
                     HttpStatus.NOT_FOUND);
         }
 
-        List<Page<MerchantCategory>> voucherResponses = new ArrayList<>();
-        voucherResponses.add(vouchers);
+        String category = merchantsCat.getMerchantCategory();
+//
+//        List<Merchant> merchants = merchantsCat.getMerchants();
+//
+//        List<Page<MerchantCategory>> voucherResponses = new ArrayList<>();
+////        voucherResponses.add(aaaaaa);
+//
+//        Map vouchersRes = new HashMap<>();
+//        vouchersRes.put("data",merchants);
+//        vouchersRes.put("message","Vouchers are successfully collected");
+//        vouchersRes.put("status","040");
+//        return ResponseEntity.ok(vouchersRes);
 
-        Map vouchersRes = new HashMap<>();
-        vouchersRes.put("data",voucherResponses);
-        vouchersRes.put("message","Vouchers are successfully collected");
-        vouchersRes.put("status","040");
-        return ResponseEntity.ok(vouchersRes);
+        if (category.equalsIgnoreCase("fnb"))
+        {
+            Merchant merchants = merchantRepository.findByMerchantNameContainingIgnoreCase("kfc");
+
+            if (merchants == null)
+            {
+                System.out.println("null");
+            }
+
+            List<Voucher> vouc = merchants.getVouchers();
+            Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy);
+
+            Long start = pageable.getOffset();
+            Long end = (start + pageable.getPageSize()) > vouc.size() ? vouc.size() : (start + pageable.getPageSize());
+
+            int a = start.intValue();
+            System.out.println(a);
+            int b = end.intValue();
+            System.out.println(b);
+
+            Page<Voucher> pages = new PageImpl<Voucher>(vouc.subList(a, b), pageable, vouc.size());
+
+            List<Page<Merchant>> merchantsResponse = new ArrayList<>();
+            List<Voucher> voucherssss = merchants.getVouchers();
+
+            Map merchantResp = new HashMap<>();
+            merchantResp.put("data",pages);
+            merchantResp.put("idMerchantCategory",merchantsCat.getIdMerchantCategory() );
+            merchantResp.put("merchantCategory",merchantsCat.getMerchantCategory() );
+            merchantResp.put("message","Vouchers are successfully collected");
+            merchantResp.put("status","040");
+            return ResponseEntity.ok(merchantResp);
+        }
+
+        if (category.equalsIgnoreCase("onlineTransaction"))
+        {
+            Merchant merchants = merchantRepository.findByMerchantNameContainingIgnoreCase("telkom");
+
+            if (merchants == null)
+            {
+                System.out.println("null");
+            }
+
+            List<Voucher> vouc = merchants.getVouchers();
+            Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy);
+
+            Long start = pageable.getOffset();
+            Long end = (start + pageable.getPageSize()) > vouc.size() ? vouc.size() : (start + pageable.getPageSize());
+
+            int a = start.intValue();
+            System.out.println(a);
+            int b = end.intValue();
+            System.out.println(b);
+
+            Page<Voucher> pages = new PageImpl<Voucher>(vouc.subList(a, b), pageable, vouc.size());
+
+            List<Page<Merchant>> merchantsResponse = new ArrayList<>();
+            List<Voucher> voucherssss = merchants.getVouchers();
+
+            Map merchantResp = new HashMap<>();
+            merchantResp.put("data",pages);
+
+
+            merchantResp.put("idMerchantCategory",merchantsCat.getIdMerchantCategory() );
+            merchantResp.put("merchantCategory",merchantsCat.getMerchantCategory() );
+            merchantResp.put("message","Vouchers are successfully collected");
+            merchantResp.put("status","040");
+            return ResponseEntity.ok(merchantResp);
+        }
+
+        return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+                HttpStatus.NOT_FOUND);
 
     }
 
@@ -91,24 +171,35 @@ public class UserRestController
             @RequestParam Optional<String> merchantName,
             @RequestParam(defaultValue = "merchantName") String sortBy)
     {
+        Merchant merchants = merchantRepository.findByMerchantNameContainingIgnoreCase(merchantName.orElse(""));
 
-        Page<Merchant> merchants = merchantRepository.findByMerchantNameContainingIgnoreCase(merchantName.orElse(""),
-                PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
-
-        if (true)
+        if (merchants == null)
         {
-            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
-                    HttpStatus.NOT_FOUND);
+            System.out.println("null");
         }
 
+        List<Voucher> vouc = merchants.getVouchers();
+        Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy);
+
+        Long start = pageable.getOffset();
+        Long end = (start + pageable.getPageSize()) > vouc.size() ? vouc.size() : (start + pageable.getPageSize());
+
+        int a = start.intValue();
+        System.out.println(a);
+        int b = end.intValue();
+        System.out.println(b);
+
+        Page<Voucher> pages = new PageImpl<Voucher>(vouc.subList(a, b), pageable, vouc.size());
+
         List<Page<Merchant>> merchantsResponse = new ArrayList<>();
-        merchantsResponse.add(merchants);
+        List<Voucher> voucherssss = merchants.getVouchers();
 
         Map merchantResp = new HashMap<>();
-        merchantResp.put("data",merchantsResponse);
+        merchantResp.put("data",pages);
+        merchantResp.put("idMerchant",merchants.getIdMerchant() );
+        merchantResp.put("merchantName",merchants.getMerchantName() );
         merchantResp.put("message","Vouchers are successfully collected");
         merchantResp.put("status","040");
-
         return ResponseEntity.ok(merchantResp);
     }
 
@@ -139,8 +230,8 @@ public class UserRestController
 
         Map merchantResp = new HashMap<>();
         merchantResp.put("data",merchantsResponse);
-        merchantResp.put("message","Vouchers are successfully collected");
-        merchantResp.put("status","040");
+        merchantResp.put("message","Successfully");
+        merchantResp.put("status","200");
 
         return ResponseEntity.ok(merchantResp);
 
