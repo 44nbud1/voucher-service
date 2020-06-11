@@ -5,7 +5,7 @@ import com.danapprentech.debrief2.voucherservice.exception.ValidationImpl;
 import com.danapprentech.debrief2.voucherservice.model.*;
 import com.danapprentech.debrief2.voucherservice.model.request.*;
 import com.danapprentech.debrief2.voucherservice.model.response.*;
-import com.danapprentech.debrief2.voucherservice.rabbit.producer.RabbitMqProducer;
+//import com.danapprentech.debrief2.voucherservice.rabbit.producer.RabbitMqProducer;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
 import com.danapprentech.debrief2.voucherservice.service.*;
@@ -35,9 +35,9 @@ public class AdminRestController {
 
 	@Autowired
     VoucherServiceImpl voucherService;
-
-	@Autowired
-    RabbitMqProducer rabbitMqProducer;
+//
+//	@Autowired
+//    RabbitMqProducer rabbitMqProducer;
 
 	@Autowired
     ValidationImpl validation;
@@ -166,7 +166,7 @@ public class AdminRestController {
                 vouchers.setCreateAt(new Date());
                 vouchers.setUpdateAt(new Date());
                 vouchers.setMerchant(merchant);
-                rabbitMqProducer.sendToRabbitVoucher(vouchers);
+//                rabbitMqProducer.sendToRabbitVoucher(vouchers);
                 voucherRepository.save(vouchers);
 
                 // response
