@@ -101,6 +101,12 @@ public class UserRestController
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<String> sortBy)
     {
+        if (sortBy == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill sort criteria","400"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         if (voucherRepository.findAll() == null)
         {
             return new ResponseEntity<>(new MessageResponse("Voucher not found","400"),

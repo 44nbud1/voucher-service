@@ -20,5 +20,4 @@ public class VoucherResponse
     private Boolean status;
     private Long merchantId;
 
-
 }

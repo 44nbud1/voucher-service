@@ -40,12 +40,4 @@ public class Merchant
     @NotNull
     private MerchantCategory merchantCategory;
 
-    /*
-    	// mapping to relational database
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_merchant", nullable = false) // --------9
-	@JsonIgnore
-	@NotNull
-	private Merchant merchant;
-     */
 }

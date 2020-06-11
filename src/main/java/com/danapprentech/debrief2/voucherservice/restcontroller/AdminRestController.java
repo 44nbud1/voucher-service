@@ -1,10 +1,11 @@
 package com.danapprentech.debrief2.voucherservice.restcontroller;
 
 import com.danapprentech.debrief2.voucherservice.exception.NotFoundException;
+import com.danapprentech.debrief2.voucherservice.exception.ValidationImpl;
 import com.danapprentech.debrief2.voucherservice.model.*;
 import com.danapprentech.debrief2.voucherservice.model.request.*;
 import com.danapprentech.debrief2.voucherservice.model.response.*;
-//import com.danapprentech.debrief2.voucherservice.repository.CompanyRepository;
+import com.danapprentech.debrief2.voucherservice.rabbit.producer.RabbitMqProducer;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
 import com.danapprentech.debrief2.voucherservice.service.*;
@@ -35,55 +36,120 @@ public class AdminRestController {
 	@Autowired
     VoucherServiceImpl voucherService;
 
+	@Autowired
+    RabbitMqProducer rabbitMqProducer;
+
+	@Autowired
+    ValidationImpl validation;
 
     @PostMapping("/admin/{idUser}/merchant/{idMerchant}/vouchers")
     public ResponseEntity<?> createOutlet(@PathVariable Long idMerchant,
                                           @PathVariable String idUser,
                              @RequestBody VoucherRequest voucherRequest)
     {
+        if (!idUser.equalsIgnoreCase("user01"))
+        {
+            return new ResponseEntity<>(new MessageResponse("User not found","022"),
+                    HttpStatus.NOT_FOUND);
+        }
+
         if (voucherOutletService.findById(idMerchant) == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Id Merchant Not Found","404"), HttpStatus.NOT_FOUND);
-        }
-
-        if (voucherRepository.findByVoucherName(voucherRequest.getVoucherName()) != null)
-        {
-            return new ResponseEntity<>(new MessageResponse("Voucher name is exist","400"), HttpStatus.BAD_REQUEST);
-        }
-
-        if (voucherRequest.getDiscount() == null)
-        {
-            return new ResponseEntity<>(new MessageResponse("Please fill form discount","400"), HttpStatus.BAD_REQUEST);
-        }
-
-        if (voucherRequest.getExpiredDate() == null)
-        {
-            return new ResponseEntity<>(new MessageResponse("Please fill form expired date","400"), HttpStatus.BAD_REQUEST);
-        }
-
-        if (voucherRequest.getMaxDiscount() == null)
-        {
-            return new ResponseEntity<>(new MessageResponse("Please fill form max discount","400"), HttpStatus.BAD_REQUEST);
-        }
-
-        if (voucherRequest.getQuota() == null)
-        {
-            return new ResponseEntity<>(new MessageResponse("Please fill form quota","400"), HttpStatus.BAD_REQUEST);
-        }
-
-        if (voucherRequest.getStatus() == null)
-        {
-            return new ResponseEntity<>(new MessageResponse("Please fill form status","400"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new MessageResponse("Id Merchant Not Found","054"),
+                    HttpStatus.NOT_FOUND);
         }
 
         if (voucherRequest.getVoucherName() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form voucher name","400"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new MessageResponse("Please fill form voucher name","055"),
+                    HttpStatus.BAD_REQUEST);
         }
+
+        if (voucherRequest.getDiscount() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form discount","056"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getExpiredDate() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form expired date","057"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getMaxDiscount() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form max discount","058"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getQuota() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form quota","059"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getStatus() == null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Please fill form status","060"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
 
         if (voucherRequest.getVoucherPrice() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form voucher price","400"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new MessageResponse("Please fill form voucher price","061"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (validation.NumberOnlyValidator(voucherRequest.getQuota()))
+        {
+            return new ResponseEntity<>(new MessageResponse("Your data is invalid","043"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getQuota() > 1000)
+        {
+            return new ResponseEntity<>(new MessageResponse("Maximum voucher quota of 1000","068"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRequest.getVoucherPrice() > 1000000)
+        {
+            return new ResponseEntity<>(new MessageResponse("Your data is invalid","043"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        Date currentDate = new Date();
+
+        // convert date to calendar
+        Calendar c = Calendar.getInstance();
+        c.setTime(currentDate);
+
+        Calendar calendarValidation = Calendar.getInstance();
+        calendarValidation.setTime(voucherRequest.getExpiredDate());
+        calendarValidation.add(Calendar.MONTH, 1);
+        Date currentDatePlusOne = calendarValidation.getTime();
+
+        Date aa = voucherRequest.getExpiredDate();
+
+
+        if (aa.after(currentDatePlusOne))
+        {
+            return new ResponseEntity<>(new MessageResponse("test","068"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (!validation.aplhabetOnly(voucherRequest.getVoucherName()))
+        {
+            return new ResponseEntity<>(new MessageResponse("Voucher name is invalid","065"),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        if (voucherRepository.findByVoucherName(voucherRequest.getVoucherName()) != null)
+        {
+            return new ResponseEntity<>(new MessageResponse("Voucher name is exist","053"),
+                    HttpStatus.BAD_REQUEST);
         }
 
         return voucherOutletService.findById(idMerchant)
@@ -100,6 +166,7 @@ public class AdminRestController {
                 vouchers.setCreateAt(new Date());
                 vouchers.setUpdateAt(new Date());
                 vouchers.setMerchant(merchant);
+                rabbitMqProducer.sendToRabbitVoucher(vouchers);
                 voucherRepository.save(vouchers);
 
                 // response
@@ -117,11 +184,11 @@ public class AdminRestController {
                 voucherResponses.add(voucherResponse);
                 Map vouchersRes = new HashMap<>();
                 vouchersRes.put("data",voucherResponses);
-                vouchersRes.put("message","Successfully");
-                vouchersRes.put("status","200");
+                vouchersRes.put("message","Create voucher successfully");
+                vouchersRes.put("status","042");
 
                 return ResponseEntity.ok(vouchersRes);
-            }).orElseThrow(() -> new NotFoundException("Company not found","400"));
+            }).orElseThrow(() -> new NotFoundException("id Merchant not found","054"));
     }
 
     @GetMapping("/admin/show-all-voucher")
@@ -129,11 +196,29 @@ public class AdminRestController {
             @RequestParam Optional<Integer> page,
             @RequestParam(defaultValue = "voucherName") String sortBy)
     {
+        String check = String.valueOf(page);
+        System.out.println(page);
+
+        List<String> list = Arrays.asList(check);
+
+        Optional<String> result = list.stream()
+                .filter(x -> x.length() == 1)
+                .findFirst();
+
+        if (result.isPresent()) {
+            System.out.println(result.get()); // a
+        }
+
+        if (check.contains("-"))
+        {
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+                    HttpStatus.NOT_FOUND);
+        }
 
         if (voucherRepository.findAll() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("voucher not found","400"),
-                    HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+                    HttpStatus.NOT_FOUND);
         }
 
         Page<Voucher> vouchers = voucherRepository.findAll(
@@ -163,7 +248,7 @@ public class AdminRestController {
         } else if (filterByStatus.equalsIgnoreCase("false")){
             status = Boolean.FALSE;
         } else {
-            return new ResponseEntity<>(new MessageResponse("Status invalid","400"),
+            return new ResponseEntity<>(new MessageResponse("Status invalid","063"),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -236,105 +321,18 @@ public class AdminRestController {
         return ResponseEntity.ok(merchantResp);
     }
 
-    @PutMapping("/admin/update-to-in-active/{idVoucher}")
-    public ResponseEntity<?> update(
-            @PathVariable Long idVoucher,
-            @RequestBody ToInActiveRequest toInActiveRequest)
-    {
-
-        Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
-        if (vouchers.getStatus() == false)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse("Status Allready InActive","400"));
-        }
-
-        if (toInActiveRequest.getStatus() == true)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
-        }
-
-        vouchers.setStatus(toInActiveRequest.getStatus());
-        vouchers.setUpdateAt(new Date());
-        voucherRepository.save(vouchers);
-
-        return ResponseEntity.ok(new MessageResponse("Successfully Changed Status","200"));
-
-    }
-
-    @PutMapping("/admin/update-to-active/{idVoucher}/restock")
-    public ResponseEntity<?> updateToActive(
-            @PathVariable Long idVoucher,
-            @RequestBody ToActive toActive)
-    {
-
-        Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
-
-        if (vouchers == null)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","400"));
-        }
-
-        if (toActive.getStatus() == false)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
-        }
-
-
-        if (vouchers.getQuota() < 5)
-        {
-            vouchers.setQuota(5);
-        }
-
-        if (toActive.getUpdateQty() != null)
-        {
-            vouchers.setQuota(toActive.getUpdateQty());
-        }
-
-        vouchers.setStatus(toActive.getStatus());
-        vouchers.setQuota(vouchers.getQuota());
-        vouchers.setUpdateAt(new Date());
-        voucherRepository.save(vouchers);
-
-        return ResponseEntity.ok(new MessageResponse("Successfully Changed Status","200"));
-    }
-
-    @PutMapping("/admin/restock-voucher/{idVoucher}")
-    public ResponseEntity<?> restockVoucher(
-            @PathVariable Long idVoucher,
-            @RequestBody RestockRequest restockRequest)
-    {
-
-        Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
-        if (vouchers == null)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","404"));
-        }
-
-        if (vouchers.getStatus() == false)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse("Status voucher inactive","400"));
-        }
-
-        vouchers.setQuota(restockRequest.getUpdateQty());
-        vouchers.setUpdateAt(new Date());
-        voucherRepository.save(vouchers);
-
-        return ResponseEntity.ok(new MessageResponse("Stock Allready updated","200"));
-
-    }
-
     @PutMapping("/admin/update-status-voucher/{idVoucher}/restock")
     public ResponseEntity<?> updateVoucher(
             @PathVariable Long idVoucher,
-            @RequestBody ToInActiveRequest toInActiveRequest)
+            @RequestBody UpdateVoucherRequest updateVoucherRequest)
     {
-        if (toInActiveRequest.getStatus() == null)
+        if (updateVoucherRequest.getStatus() == null)
         {
             return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","400"));
         }
 
-        // onlt change status
-        if (toInActiveRequest.getStatus() == true && toInActiveRequest.getQuota() == null)
+        // only change status
+        if (updateVoucherRequest.getStatus() == true && updateVoucherRequest.getQuota() == null)
         {
 
             Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
@@ -344,7 +342,7 @@ public class AdminRestController {
                 return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","400"));
             }
 
-            if (toInActiveRequest.getStatus() == false)
+            if (updateVoucherRequest.getStatus() == false)
             {
                 return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
             }
@@ -363,24 +361,29 @@ public class AdminRestController {
         }
 
         // only change stock
-        if (toInActiveRequest.getStatus() == true && toInActiveRequest.getQuota() != null)
+        if (updateVoucherRequest.getStatus() == true && updateVoucherRequest.getQuota() != null)
         {
 
             Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
+
+            if (vouchers.getStatus() != false && updateVoucherRequest.getStatus())
+            {
+                return ResponseEntity.badRequest().body(new MessageResponse("Voucher status is inactive","400"));
+            }
 
             if (vouchers == null)
             {
                 return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","400"));
             }
 
-            if (toInActiveRequest.getStatus() == false)
+            if (updateVoucherRequest.getStatus() == false)
             {
                 return ResponseEntity.badRequest().body(new MessageResponse("Wrong status","400"));
             }
 
 
             vouchers.setStatus(Boolean.TRUE);
-            vouchers.setQuota(vouchers.getQuota()+toInActiveRequest.getQuota());
+            vouchers.setQuota(vouchers.getQuota()+ updateVoucherRequest.getQuota());
             vouchers.setUpdateAt(new Date());
             voucherRepository.save(vouchers);
 
@@ -388,7 +391,7 @@ public class AdminRestController {
         }
 
         // only change status
-        if (toInActiveRequest.getStatus() == false) {
+        if (updateVoucherRequest.getStatus() == false) {
             Voucher vouchers = voucherRepository.findByIdVoucher(idVoucher);
 
             vouchers.setStatus(Boolean.FALSE);
@@ -402,5 +405,6 @@ public class AdminRestController {
         }
 
     }
+
 
 }
