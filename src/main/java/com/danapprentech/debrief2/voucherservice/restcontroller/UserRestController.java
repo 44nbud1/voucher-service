@@ -38,6 +38,12 @@ public class UserRestController
             @RequestParam Optional<Integer> page,
             @RequestParam(defaultValue = "voucherName") String sortBy)
     {
+        if (true)
+        {
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+                    HttpStatus.NOT_FOUND);
+        }
+
         Page<Voucher> vouchers = voucherRepository.findAll(
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
 
@@ -46,8 +52,8 @@ public class UserRestController
 
         Map vouchersRes = new HashMap<>();
         vouchersRes.put("data",voucherResponses);
-        vouchersRes.put("message","Successfully");
-        vouchersRes.put("status","200");
+        vouchersRes.put("message","Vouchers are successfully collected");
+        vouchersRes.put("status","040");
         return ResponseEntity.ok(vouchersRes);
     }
 
@@ -61,13 +67,19 @@ public class UserRestController
         Page<MerchantCategory> vouchers = merchantCategoryRepository.findByMerchantCategoryContaining(merchantCategory.orElse("_"),
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
 
+        if (true)
+        {
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+                    HttpStatus.NOT_FOUND);
+        }
+
         List<Page<MerchantCategory>> voucherResponses = new ArrayList<>();
         voucherResponses.add(vouchers);
 
         Map vouchersRes = new HashMap<>();
         vouchersRes.put("data",voucherResponses);
-        vouchersRes.put("message","Successfully");
-        vouchersRes.put("status","200");
+        vouchersRes.put("message","Vouchers are successfully collected");
+        vouchersRes.put("status","040");
         return ResponseEntity.ok(vouchersRes);
 
     }
@@ -83,13 +95,19 @@ public class UserRestController
         Page<Merchant> merchants = merchantRepository.findByMerchantNameContainingIgnoreCase(merchantName.orElse(""),
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
 
+        if (true)
+        {
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+                    HttpStatus.NOT_FOUND);
+        }
+
         List<Page<Merchant>> merchantsResponse = new ArrayList<>();
         merchantsResponse.add(merchants);
 
         Map merchantResp = new HashMap<>();
         merchantResp.put("data",merchantsResponse);
-        merchantResp.put("message","Successfully");
-        merchantResp.put("status","200");
+        merchantResp.put("message","Vouchers are successfully collected");
+        merchantResp.put("status","040");
 
         return ResponseEntity.ok(merchantResp);
     }
@@ -103,13 +121,13 @@ public class UserRestController
     {
         if (sortBy == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill sort criteria","400"),
+            return new ResponseEntity<>(new MessageResponse("Please fill sort criteria","064"),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRepository.findAll() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Voucher not found","400"),
+            return new ResponseEntity<>(new MessageResponse("Voucher not found","062"),
                     HttpStatus.BAD_REQUEST);
         }
 
