@@ -9,6 +9,7 @@ import com.danapprentech.debrief2.voucherservice.model.response.*;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
 import com.danapprentech.debrief2.voucherservice.service.*;
+import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -47,74 +48,74 @@ public class AdminRestController {
     {
         if (!idUser.equalsIgnoreCase("user01"))
         {
-            return new ResponseEntity<>(new MessageResponse("User not found","022"),
+            return new ResponseEntity<>(new MessageResponse("User not found","022","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.NOT_FOUND);
         }
 
         if (voucherOutletService.findById(idMerchant) == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Id Merchant Not Found","054"),
+            return new ResponseEntity<>(new MessageResponse("Id Merchant Not Found","054","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.NOT_FOUND);
         }
 
         if (voucherRequest.getVoucherName() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form voucher name","055"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form voucher name","055","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getDiscount() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form discount","056"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form discount","056","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getExpiredDate() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form expired date","057"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form expired date","057","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getMaxDiscount() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form max discount","058"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form max discount","058","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getQuota() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form quota","059"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form quota","059","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getStatus() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form status","060"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form status","060","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
 
         if (voucherRequest.getVoucherPrice() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill form voucher price","061"),
+            return new ResponseEntity<>(new MessageResponse("Please fill form voucher price","061","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (validation.NumberOnlyValidator(voucherRequest.getQuota()))
         {
-            return new ResponseEntity<>(new MessageResponse("Your data is invalid","043"),
+            return new ResponseEntity<>(new MessageResponse("Your data is invalid","043","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getQuota() > 1000)
         {
-            return new ResponseEntity<>(new MessageResponse("Maximum voucher quota of 1000","068"),
+            return new ResponseEntity<>(new MessageResponse("Maximum voucher quota of 1000","068","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRequest.getVoucherPrice() > 1000000)
         {
-            return new ResponseEntity<>(new MessageResponse("Your data is invalid","043"),
+            return new ResponseEntity<>(new MessageResponse("Your data is invalid","043","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -134,19 +135,19 @@ public class AdminRestController {
 
         if (aa.after(currentDatePlusOne))
         {
-            return new ResponseEntity<>(new MessageResponse("test","068"),
+            return new ResponseEntity<>(new MessageResponse("test","068","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (!validation.aplhabetOnly(voucherRequest.getVoucherName()))
         {
-            return new ResponseEntity<>(new MessageResponse("Voucher name is invalid","065"),
+            return new ResponseEntity<>(new MessageResponse("Voucher name is invalid","065","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRepository.findByVoucherName(voucherRequest.getVoucherName()) != null)
         {
-            return new ResponseEntity<>(new MessageResponse("Voucher name is exist","053"),
+            return new ResponseEntity<>(new MessageResponse("Voucher name is exist","053","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -182,6 +183,8 @@ public class AdminRestController {
                 voucherResponses.add(voucherResponse);
                 Map vouchersRes = new HashMap<>();
                 vouchersRes.put("data",voucherResponses);
+                vouchersRes.put("timestamp",new Date());
+                vouchersRes.put("path","/api/admin/"+idUser+"/merchant/"+idMerchant+"/vouchers");
                 vouchersRes.put("message","Create voucher successfully");
                 vouchersRes.put("status","042");
 
@@ -209,13 +212,13 @@ public class AdminRestController {
 
         if (check.contains("-"))
         {
-            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062","/api/admin/filterByStatus-voucher",new Date()),
                     HttpStatus.NOT_FOUND);
         }
 
         if (voucherRepository.findAll() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062","/api/admin/filterByStatus-voucher",new Date()),
                     HttpStatus.NOT_FOUND);
         }
 
@@ -227,6 +230,8 @@ public class AdminRestController {
 
         Map vouchersRes = new HashMap<>();
         vouchersRes.put("data",voucherResponses);
+        vouchersRes.put("timestamp",new Date());
+        vouchersRes.put("path","/api/admin/show-all-voucher");
         vouchersRes.put("message","Vouchers are successfully collected");
         vouchersRes.put("status","040");
         return ResponseEntity.ok(vouchersRes);
@@ -246,7 +251,7 @@ public class AdminRestController {
         } else if (filterByStatus.equalsIgnoreCase("false")){
             status = Boolean.FALSE;
         } else {
-            return new ResponseEntity<>(new MessageResponse("Status invalid","063"),
+            return new ResponseEntity<>(new MessageResponse("Status invalid","063","/api/admin/filterByStatus-voucher",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -258,6 +263,8 @@ public class AdminRestController {
 
         Map vouchersRes = new HashMap<>();
         vouchersRes.put("data",voucherResponses);
+        vouchersRes.put("timestamp",new Date());
+        vouchersRes.put("path","/api/admin/filterByStatus-voucher");
         vouchersRes.put("message","Vouchers are successfully collected");
         vouchersRes.put("status","040");
 
@@ -274,7 +281,9 @@ public class AdminRestController {
 
         if (merchants == null)
         {
-            System.out.println("null");
+            return new ResponseEntity<>(new MessageResponse("Page is not found","038",
+                    "/api/admin/findByMerchantName-voucher",new Date()),
+                    HttpStatus.BAD_REQUEST);
         }
 
         List<Voucher> vouc = merchants.getVouchers();
@@ -293,8 +302,13 @@ public class AdminRestController {
         List<Page<Merchant>> merchantsResponse = new ArrayList<>();
         List<Voucher> voucherssss = merchants.getVouchers();
 
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(pages);
+
         Map merchantResp = new HashMap<>();
-        merchantResp.put("data",pages);
+        merchantResp.put("data",jsonArray);
+        merchantResp.put("timestamp",new Date());
+        merchantResp.put("path","/api/admin/findByMerchantName-voucher");
         merchantResp.put("idMerchant",merchants.getIdMerchant() );
         merchantResp.put("merchantName",merchants.getMerchantName() );
         merchantResp.put("message","Vouchers are successfully collected");
@@ -311,7 +325,7 @@ public class AdminRestController {
     {
         if (voucherRepository.findByIdVoucher(idVoucher) == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Voucher not found","062"),
+            return new ResponseEntity<>(new MessageResponse("Voucher not found","062","/api/admin/voucher-detail-voucher/"+idVoucher,new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -331,6 +345,8 @@ public class AdminRestController {
 
         Map merchantResp = new HashMap<>();
         merchantResp.put("data",merchantsResponse);
+        merchantResp.put("timestamp",new Date());
+        merchantResp.put("path","/api/admin/voucher-detail-voucher/"+idVoucher);
         merchantResp.put("message","Vouchers are successfully collected");
         merchantResp.put("status","040");
 
@@ -344,7 +360,8 @@ public class AdminRestController {
     {
         if (updateVoucherRequest.getStatus() == null)
         {
-            return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","063"));
+            return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","063",
+                    "/api/admin/update-status-voucher/{idVoucher}/restock",new Date()));
         }
 
         // only change status
@@ -355,12 +372,14 @@ public class AdminRestController {
 
             if (vouchers == null)
             {
-                return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","062"));
+                return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","062",
+                        "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
             }
 
             if (updateVoucherRequest.getStatus() == false)
             {
-                return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","063"));
+                return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","063",
+                        "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
             }
 
             if (vouchers.getQuota() < 5)
@@ -373,7 +392,8 @@ public class AdminRestController {
             vouchers.setUpdateAt(new Date());
             voucherRepository.save(vouchers);
 
-            return ResponseEntity.ok(new MessageResponse("Successfully Change Status","044"));
+            return ResponseEntity.ok(new MessageResponse("Successfully Change Status","044",
+                    "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
         }
 
         // only change stock
@@ -385,17 +405,19 @@ public class AdminRestController {
             if (vouchers.getStatus() != false && updateVoucherRequest.getStatus())
             {
                 return ResponseEntity.badRequest().body(new MessageResponse("Status invalid",
-                        "063"));
+                        "063","/admin/update-status-voucher/{idVoucher}/restock",new Date()));
             }
 
             if (vouchers == null)
             {
-                return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","062"));
+                return ResponseEntity.badRequest().body(new MessageResponse("Voucher not found","062",
+                        "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
             }
 
             if (updateVoucherRequest.getStatus() == false)
             {
-                return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","063"));
+                return ResponseEntity.badRequest().body(new MessageResponse("Status invalid","063",
+                        "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
             }
 
             vouchers.setStatus(Boolean.TRUE);
@@ -403,7 +425,8 @@ public class AdminRestController {
             vouchers.setUpdateAt(new Date());
             voucherRepository.save(vouchers);
 
-            return ResponseEntity.ok(new MessageResponse("Successfully change status","044"));
+            return ResponseEntity.ok(new MessageResponse("Successfully change status","044",
+                    "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
         }
 
         // only change status
@@ -414,10 +437,12 @@ public class AdminRestController {
             vouchers.setUpdateAt(new Date());
             voucherRepository.save(vouchers);
 
-            return ResponseEntity.ok(new MessageResponse("Successfully change status", "044"));
+            return ResponseEntity.ok(new MessageResponse("Successfully change status", "044",
+                    "/admin/update-status-voucher/{idVoucher}/restock",new Date()));
         }
         else {
-            return ResponseEntity.badRequest().body(new MessageResponse("Status invalid", "063"));
+            return ResponseEntity.badRequest().body(new MessageResponse("Status invalid", "063",
+                    "/admin/update-status-voucher/{idVoucher}/restock", new Date()));
         }
 
     }

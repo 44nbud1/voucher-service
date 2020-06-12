@@ -8,6 +8,7 @@ import com.danapprentech.debrief2.voucherservice.model.response.VoucherOutletRes
 import com.danapprentech.debrief2.voucherservice.repository.MerchantCategoryRepository;
 import com.danapprentech.debrief2.voucherservice.repository.MerchantRepository;
 import com.danapprentech.debrief2.voucherservice.repository.VoucherRepository;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -38,11 +39,11 @@ public class UserRestController
             @RequestParam Optional<Integer> page,
             @RequestParam(defaultValue = "voucherName") String sortBy)
     {
-        if (true)
-        {
-            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
-                    HttpStatus.NOT_FOUND);
-        }
+//        if (true)
+//        {
+//            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+//                    HttpStatus.NOT_FOUND);
+//        }
 
         Page<Voucher> vouchers = voucherRepository.findAll(
                 PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy));
@@ -52,6 +53,8 @@ public class UserRestController
 
         Map vouchersRes = new HashMap<>();
         vouchersRes.put("data",voucherResponses);
+        vouchersRes.put("timestamp",new Date());
+        vouchersRes.put("path","/api/user/show-all-voucher");
         vouchersRes.put("message","Vouchers are successfully collected");
         vouchersRes.put("status","040");
         return ResponseEntity.ok(vouchersRes);
@@ -72,31 +75,16 @@ public class UserRestController
 
         if (merchantsCat == null)
         {
-            return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062",
+                    "/api/user/filter-voucher",new Date()),
                     HttpStatus.NOT_FOUND);
         }
 
         String category = merchantsCat.getMerchantCategory();
-//
-//        List<Merchant> merchants = merchantsCat.getMerchants();
-//
-//        List<Page<MerchantCategory>> voucherResponses = new ArrayList<>();
-////        voucherResponses.add(aaaaaa);
-//
-//        Map vouchersRes = new HashMap<>();
-//        vouchersRes.put("data",merchants);
-//        vouchersRes.put("message","Vouchers are successfully collected");
-//        vouchersRes.put("status","040");
-//        return ResponseEntity.ok(vouchersRes);
 
         if (category.equalsIgnoreCase("fnb"))
         {
             Merchant merchants = merchantRepository.findByMerchantNameContainingIgnoreCase("kfc");
-
-            if (merchants == null)
-            {
-                System.out.println("null");
-            }
 
             List<Voucher> vouc = merchants.getVouchers();
             Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy);
@@ -114,8 +102,13 @@ public class UserRestController
             List<Page<Merchant>> merchantsResponse = new ArrayList<>();
             List<Voucher> voucherssss = merchants.getVouchers();
 
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.add(pages);
+
             Map merchantResp = new HashMap<>();
-            merchantResp.put("data",pages);
+            merchantResp.put("data",jsonArray);
+            merchantResp.put("timestamp",new Date());
+            merchantResp.put("path","/api/user/filter-voucher");
             merchantResp.put("idMerchantCategory",merchantsCat.getIdMerchantCategory() );
             merchantResp.put("merchantCategory",merchantsCat.getMerchantCategory() );
             merchantResp.put("message","Vouchers are successfully collected");
@@ -127,11 +120,6 @@ public class UserRestController
         {
             Merchant merchants = merchantRepository.findByMerchantNameContainingIgnoreCase("telkom");
 
-            if (merchants == null)
-            {
-                System.out.println("null");
-            }
-
             List<Voucher> vouc = merchants.getVouchers();
             Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.Direction.ASC, sortBy);
 
@@ -148,10 +136,13 @@ public class UserRestController
             List<Page<Merchant>> merchantsResponse = new ArrayList<>();
             List<Voucher> voucherssss = merchants.getVouchers();
 
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.add(pages);
+
             Map merchantResp = new HashMap<>();
-            merchantResp.put("data",pages);
-
-
+            merchantResp.put("data",jsonArray);
+            merchantResp.put("timestamp",new Date());
+            merchantResp.put("path","/api/user/filter-voucher");
             merchantResp.put("idMerchantCategory",merchantsCat.getIdMerchantCategory() );
             merchantResp.put("merchantCategory",merchantsCat.getMerchantCategory() );
             merchantResp.put("message","Vouchers are successfully collected");
@@ -159,9 +150,9 @@ public class UserRestController
             return ResponseEntity.ok(merchantResp);
         }
 
-        return new ResponseEntity<>(new MessageResponse("voucher not found","062"),
+        return new ResponseEntity<>(new MessageResponse("voucher not found","062",
+                "/api/user/filter-voucher",new Date()),
                 HttpStatus.NOT_FOUND);
-
     }
 
     ///api/user/search-voucher?nameVoucher={name}&page={page}
@@ -175,7 +166,9 @@ public class UserRestController
 
         if (merchants == null)
         {
-            System.out.println("null");
+            return new ResponseEntity<>(new MessageResponse("voucher not found","062",
+                    "/api/user/filter-voucher",new Date()),
+                    HttpStatus.NOT_FOUND);
         }
 
         List<Voucher> vouc = merchants.getVouchers();
@@ -194,8 +187,13 @@ public class UserRestController
         List<Page<Merchant>> merchantsResponse = new ArrayList<>();
         List<Voucher> voucherssss = merchants.getVouchers();
 
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(pages);
+
         Map merchantResp = new HashMap<>();
-        merchantResp.put("data",pages);
+        merchantResp.put("data",jsonArray);
+        merchantResp.put("timestamp",new Date());
+        merchantResp.put("path","/api/user/findByMerchantName-voucher");
         merchantResp.put("idMerchant",merchants.getIdMerchant() );
         merchantResp.put("merchantName",merchants.getMerchantName() );
         merchantResp.put("message","Vouchers are successfully collected");
@@ -212,13 +210,15 @@ public class UserRestController
     {
         if (sortBy == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Please fill sort criteria","064"),
+            return new ResponseEntity<>(new MessageResponse("Please fill sort criteria","064",
+                    "/api/user/sort-voucher",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (voucherRepository.findAll() == null)
         {
-            return new ResponseEntity<>(new MessageResponse("Voucher not found","062"),
+            return new ResponseEntity<>(new MessageResponse("Voucher not found","062",
+                    "/api/user/sort-voucher",new Date()),
                     HttpStatus.BAD_REQUEST);
         }
 
